@@ -1,0 +1,47 @@
+#!/usr/bin/env ruby
+
+# Creates a bare repo, transfers it to the given destination, and adds a remote
+# for it. This is useful for backing up new repos to private servers.
+#
+# e.g. git-mkremote.rb sesame /foo/bar/my-repo elmo@sesamestreet.com:git
+# Above would send a bare clone of /foo/bar/my-repo to elmo@sesamestreet.com via
+# ssh, storing it in ~/git, and add a remote called sesame to the local repo.
+# After executing this you can do `git fetch sesame` etc.
+
+remote_name = ARGV[0]
+repo_path = ARGV[1]
+ssh_full = ARGV[2]
+
+def convert_ssh_to_git_remote(ssh)
+  user_host, path = ssh.split(':')
+  if not path =~ /^\//
+    path = "/~/#{path}" 
+  end
+  user_host + path
+end
+
+repo_name = File.basename(repo_path)
+bare_name = "#{repo_name}.git"
+compressed_name = "#{bare_name}.tgz"
+repo_parent = File.expand_path('..', repo_path)
+git_remote_path = convert_ssh_to_git_remote(ssh_full)
+ssh_user_host, ssh_path = ssh_full.split(':')
+
+cd_cmd = "cd #{repo_parent} && "
+cmds = []
+cmds << ['clone', cd_cmd + "git clone --bare #{repo_name}"]
+cmds << ['compress', cd_cmd + "tar czf #{compressed_name} #{bare_name}" ]
+cmds << ['send', cd_cmd + "scp #{compressed_name} #{ssh_full}"]
+cmds << ['ssh', "ssh #{ssh_user_host} 'cd #{ssh_path} && tar xzf #{compressed_name} && rm -rf #{compressed_name}'"]
+cmds << ['add remote', "cd #{repo_path} && git remote add #{remote_name} ssh://#{git_remote_path}/#{bare_name}"]
+# remove the bare and compressed bare in one fell swoop
+cmds << ['rm local', cd_cmd + "rm -rf #{bare_name}*"]
+
+cmds.each do |name, cmd|
+  puts "#{name}: #{cmd}"
+  begin
+    system cmd
+  rescue
+    abort "failed to execute #{cmd}"
+  end
+end
