@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+src_dir="$1"
+dest_dir="$2"
+
+cd "$src_dir"
+for f in *.flac; do
+	dest="${dest_dir}"/"$(echo "$f" | perl -p -e 's/\.flac$/\.mp3/')"
+	ffmpeg -i "$f" -vn -q:a 0 "$dest"
+done
