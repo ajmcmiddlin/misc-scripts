@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+# -L to follow redirects, -C to automatically resume partial downloads
+curl -L -C - "$1" -o "$2"
