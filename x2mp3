@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+src_dir="$1"
+dest_dir="$2"
+src_fmt="$3"
+
+cd "$src_dir"
+for f in *."$src_fmt"; do
+	dest="${dest_dir}/${f%$src_fmt}mp3"
+	ffmpeg -i "$f" -vn -q:a 0 "$dest"
+done
