@@ -1,0 +1,16 @@
+#!/usr/bin/env sh
+
+current=$(defaults read com.apple.finder AppleShowAllFiles)
+
+if [[ $current = "TRUE" || $current = "YES" ]]; then
+	new="FALSE"
+else
+	new="TRUE"
+fi
+
+echo "AppleShowAllFiles previously set to ${current}. Setting to ${new}."
+
+defaults write com.apple.finder AppleShowAllFiles "$new"
+killall Finder /System/Library/CoreServices/Finder.app
+
+exit 0
