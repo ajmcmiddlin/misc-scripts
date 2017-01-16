@@ -3,27 +3,23 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 
-import Turtle as T
+import           Turtle                 as T
 
 data Fail = NoArgs
 
-main = do
-  args <- arguments
+main :: IO ()
+main = sh $ do
+  args <- liftIO arguments
   case args of
     (x:_) -> doIt . fromText $ x
-    _     -> whoopsie NoArgs
+    _     -> liftIO $ whoopsie NoArgs
 
-doIt :: T.FilePath -> IO ()
+doIt :: T.FilePath -> Shell ()
 doIt fp = do
-  dirs <- join $ fold (ls fp) filterDirs
-  sequence $ fmap (putStrLn . show) dirs
-  return ()
-
-filterDirs :: Fold T.FilePath (IO [T.FilePath])
-filterDirs = Fold addIfDir (return []) id
-  where addIfDir dirs fp = do
-          isDir <- testdir fp
-          if isDir then fmap (fp :) dirs else dirs
+  path <- ls fp
+  True <- testdir path
+  (liftIO . putStrLn . show) path
+  pure ()
 
 whoopsie :: Fail -> IO ()
 whoopsie NoArgs = putStrLn "Expecting album dir as argument"
