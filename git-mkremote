@@ -8,6 +8,11 @@
 # ssh, storing it in ~/git, and add a remote called sesame to the local repo.
 # After executing this you can do `git fetch sesame` etc.
 
+if ARGV.empty?
+  puts "Usage: git-mkremote my-remote /local/path/to/repo user@host:remote/path"
+  exit 0
+end
+
 remote_name = ARGV[0]
 repo_path = ARGV[1]
 ssh_full = ARGV[2]
